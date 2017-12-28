@@ -1,24 +1,15 @@
 #!/usr/bin/env python
 
 import rospy
-from geometry_msgs.msg import PoseStamped
+from geometry_msgs.msg import PoseStamped, TwistStamped
 from styx_msgs.msg import Lane, Waypoint
-
+from std_msgs.msg import Int32, Float32
+from copy import deepcopy
+import tf
 import math
 
 '''
 This node will publish waypoints from the car's current position to some `x` distance ahead.
-
-As mentioned in the doc, you should ideally first implement a version which does not care
-about traffic lights or obstacles.
-
-Once you have created dbw_node, you will update this node to use the status of traffic lights too.
-
-Please note that our simulator also provides the exact location of traffic lights and their
-current status in `/vehicle/traffic_lights` message. You can use this message to build this node
-as well as to verify your TL classifier.
-
-TODO (for Yousuf and Aaron): Stopline location for each traffic light.
 '''
 
 LOOKAHEAD_WPS = 200 # Number of waypoints we will publish. You can change this number
@@ -29,28 +20,45 @@ class WaypointUpdater(object):
         rospy.init_node('waypoint_updater')
 
         rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
-        rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
+        self.wp_sub = rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
+        rospy.Subscriber('/traffic_waypoint',Int32, self.traffic_cb)
+        rospy.Subscriber('/obstacle_waypoint',Int32, self.obstacle_cb)
+        rospy.Subscriber('current_velocity', TwistStamped, self.current_velocity_cb )
+        
 
-        # TODO: Add a subscriber for /traffic_waypoint and /obstacle_waypoint below
+       
 
 
         self.final_waypoints_pub = rospy.Publisher('final_waypoints', Lane, queue_size=1)
 
-        # TODO: Add other member variables you need below
+        self.current_pose = None
+        self.base_waypoints = None
+        self.current_velocity = None
+        self.traffic_waypoint = None;
+        self.final_waypoints = None
+        
 
         rospy.spin()
 
     def pose_cb(self, msg):
-        # TODO: Implement
-        pass
+        self.current_pose = msg
+        rospy.loginfo('current pose recived')
 
     def waypoints_cb(self, waypoints):
-        # TODO: Implement
-        pass
+        self.base_waypoints = waypoints.waypoints
+        rospy.loginfo('base_waypoints recived')
+        # We need to get base waypoints only once.
+        self.wp_sub.unregister()
+        self.wp_sub = None
+
+
+    def current_velocity_cb(self, msg):
+        self.current_velocity = msg.twist
+
 
     def traffic_cb(self, msg):
-        # TODO: Callback for /traffic_waypoint message. Implement
-        pass
+        self.traffic_waypoint = msg.data
+        
 
     def obstacle_cb(self, msg):
         # TODO: Callback for /obstacle_waypoint message. We will implement it later
