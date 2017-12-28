@@ -11,6 +11,7 @@ import tf
 import cv2
 import yaml
 import numpy as np
+import math
 
 STATE_COUNT_THRESHOLD = 3
 
@@ -124,7 +125,7 @@ class TLDetector(object):
             if dist < closest_dist:
                 closest_wp = i
                 closest_dist = dist
-        
+        print (closest_wp)
         return closest_wp
 
     def get_next_waypoint(self, pose, waypoints):
@@ -244,21 +245,21 @@ class TLDetector(object):
 
         if(self.pose):
             car_position = self.get_closest_waypoint(self.pose.pose, self.waypoints.waypoints)
-
+            print(car_position)
         #TODO find the closest visible traffic light (if one exists)
 
         for stop_light_pos in stop_line_positions:
             light_tmp = self.create_light(stop_light_pos[0], stop_light_pos[1], 0.0, 0.0, TrafficLight.UNKNOWN)
             light_pos = self.get_closest_waypoint(light_tmp.pose.pose, self.waypoints.waypoints)
-            dist = self.distance(self.waypoints.waypoints['car_position'].pose.psoe.position.x,
-                                 self.waypoints.waypoints['car_position'].pose.pose.position.y,
-                                 self.waypoints.waypoints['light_pos'].pose.pose.position.x,
-                                 self.waypoints.waypoints['light_pos'].pose.pose.position.y)
+            dist = self.distance(self.waypoints.waypoints[car_position].pose.pose.position.x,
+                                 self.waypoints.waypoints[car_position].pose.pose.position.y,
+                                 self.waypoints.waypoints[light_pos].pose.pose.position.x,
+                                 self.waypoints.waypoints[light_pos].pose.pose.position.y)
 
             if dist < min_dist and dist < visibility_dist_max and car_position < light_pos:
                 min_dist = dist
                 light = light_tmp
-                light_wp = light_position
+                light_wp = light_pos
 
 
 
